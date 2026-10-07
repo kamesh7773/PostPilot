@@ -1,16 +1,15 @@
-import 'package:base_flutter_application/features/auth/views/login_screen.dart';
+import 'package:base_flutter_application/core/routes/route_generator.dart';
+import 'package:base_flutter_application/core/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 void main() {
-  testWidgets('Login screen renders welcome text', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: LoginScreen()),
-      ),
+  test('Home is the initial route', () {
+    final route = RouteGenerator.generateRoute(
+      const RouteSettings(name: Routes.home),
     );
 
-    expect(find.text('Welcome back'), findsOneWidget);
+    expect(route, isA<MaterialPageRoute>());
+    expect(route.settings.name, Routes.home);
   });
 }

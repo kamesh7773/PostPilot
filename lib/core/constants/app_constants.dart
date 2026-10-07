@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Object Trajectory Tracking';
+  static const String appName = 'PostPilot';
 
   // Design reference size for ScreenUtil
   static const double designWidth = 375;

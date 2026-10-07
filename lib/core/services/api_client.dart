@@ -6,7 +6,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../config/env.dart';
 import '../constants/api_endpoints.dart';
 import '../constants/app_constants.dart';
-import 'secure_storage_service.dart';
 
 part 'api_client.g.dart';
 
@@ -27,7 +26,7 @@ Dio apiClient(Ref ref) {
     ),
   );
 
-  dio.interceptors.add(_authInterceptor(dio, ref));
+  dio.interceptors.add(_interceptor());
 
   if (Env.enableLogs && kDebugMode) {
     dio.interceptors.add(
@@ -46,52 +45,17 @@ Dio apiClient(Ref ref) {
   return dio;
 }
 
-bool _isAuthFreeEndpoint(String path) =>
-    path.endsWith(ApiEndpoints.login) ||
-    path.endsWith(ApiEndpoints.refreshToken);
-
-Interceptor _authInterceptor(Dio dio, Ref ref) {
+Interceptor _interceptor() {
   return InterceptorsWrapper(
-    onRequest: (options, handler) async {
+    onRequest: (options, handler) {
       final apiToken = Env.apiToken;
       if (apiToken != null && apiToken.isNotEmpty) {
         options.headers['Api-Token'] = apiToken;
       }
 
-      if (!_isAuthFreeEndpoint(options.path)) {
-        final storage = ref.read(secureStorageServiceProvider.notifier);
-        final token = await storage.getToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-      }
-
       return handler.next(options);
     },
-    onError: (error, handler) async {
-      final storage = ref.read(secureStorageServiceProvider.notifier);
-
-      final canRefresh = error.response?.statusCode == 401 &&
-          !_isAuthFreeEndpoint(error.requestOptions.path);
-
-      if (canRefresh) {
-        final tokens = await _refreshTokens(dio, storage);
-        if (tokens != null) {
-          final retry = error.requestOptions;
-          retry.headers['Authorization'] = 'Bearer ${tokens.$1}';
-          try {
-            final response = await dio.fetch(retry);
-            return handler.resolve(response);
-          } catch (_) {
-            // fall through to error mapping below
-          }
-        } else {
-          // Refresh failed (or no refresh token) — clear stored creds so the
-          // auth gate flips back to the login screen on next bootstrap.
-          await storage.deleteTokens();
-        }
-      }
-
+    onError: (error, handler) {
       String message = 'Something went wrong';
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout ||
@@ -118,33 +82,4 @@ Interceptor _authInterceptor(Dio dio, Ref ref) {
       );
     },
   );
-}
-
-/// Calls the Platzi refresh endpoint and stores the new tokens.
-/// Returns `(accessToken, refreshToken)` on success, otherwise `null`.
-Future<(String, String)?> _refreshTokens(
-  Dio dio,
-  SecureStorageService storage,
-) async {
-  try {
-    final refresh = await storage.getRefreshToken();
-    if (refresh == null) return null;
-
-    final response = await dio.post(
-      ApiEndpoints.refreshToken,
-      data: {'refreshToken': refresh},
-    );
-
-    if (response.data is! Map<String, dynamic>) return null;
-    final data = response.data as Map<String, dynamic>;
-    final access = data['access_token'] as String?;
-    final newRefresh = data['refresh_token'] as String?;
-    if (access == null || newRefresh == null) return null;
-
-    await storage.saveToken(access);
-    await storage.saveRefreshToken(newRefresh);
-    return (access, newRefresh);
-  } catch (_) {
-    return null;
-  }
 }
