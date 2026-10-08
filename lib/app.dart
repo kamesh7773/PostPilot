@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toastification/toastification.dart';
 
 import 'core/config/env.dart';
@@ -11,9 +12,10 @@ import 'core/routes/route_generator.dart';
 import 'core/routes/routes.dart';
 import 'core/services/navigation_service.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/repositories/auth_repository.dart';
 
-class ObjectTrajectoryTrackingApp extends ConsumerWidget {
-  const ObjectTrajectoryTrackingApp({super.key});
+class PostPilotApp extends ConsumerWidget {
+  const PostPilotApp({super.key});
 
   String get _appTitle {
     if (Env.isDevelopment) return '${AppConstants.appName} Dev';
@@ -24,6 +26,20 @@ class ObjectTrajectoryTrackingApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final navigationService = ref.watch(navigationServiceProvider.notifier);
+    final isSignedIn = ref.read(authRepositoryProvider).isSignedIn;
+
+    // Single place that reacts to auth changes: sign-in from the login
+    // screen, sign-out from anywhere, or the session being revoked.
+    ref.listen(authStateChangesProvider, (_, next) {
+      switch (next.value?.event) {
+        case AuthChangeEvent.signedIn:
+          navigationService.pushNamedAndRemoveUntil(Routes.home);
+        case AuthChangeEvent.signedOut:
+          navigationService.pushNamedAndRemoveUntil(Routes.login);
+        default:
+          break;
+      }
+    });
 
     return ScreenUtilInit(
       designSize: const Size(
@@ -45,7 +61,12 @@ class ObjectTrajectoryTrackingApp extends ConsumerWidget {
           ],
           supportedLocales: const [Locale('en', 'US')],
           locale: const Locale('en', 'US'),
-          initialRoute: Routes.home,
+          initialRoute: isSignedIn ? Routes.home : Routes.login,
+          // Push only the initial route. Flutter's default also pushes every
+          // parent path, so '/login' would build Home ('/') underneath it.
+          onGenerateInitialRoutes: (initialRoute) => [
+            RouteGenerator.generateRoute(RouteSettings(name: initialRoute)),
+          ],
           onGenerateRoute: RouteGenerator.generateRoute,
           builder: (context, child) {
             final content = ToastificationWrapper(

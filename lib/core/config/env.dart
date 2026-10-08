@@ -44,6 +44,7 @@ class Env {
 ║  env file        : $fileName
 ║  API_BASE_URL    : $apiBaseUrl
 ║  API_VERSION     : $apiVersion
+║  SUPABASE_URL    : $supabaseUrl
 ║  ENABLE_LOGS     : $enableLogs
 ║  ENABLE_ANALYTICS: $enableAnalytics
 ║  ENABLE_CRASH    : $enableCrashReporting
@@ -55,6 +56,10 @@ class Env {
   static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? '';
   static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
   static String? get apiToken => dotenv.env['API_TOKEN'];
+  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
+  // Supabase publishable key — safe to ship in the app.
+  static String get supabasePublishableKey =>
+      dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '';
   static bool get enableLogs => dotenv.env['ENABLE_LOGS'] == 'true';
   static bool get enableAnalytics => dotenv.env['ENABLE_ANALYTICS'] == 'true';
   static bool get enableCrashReporting =>

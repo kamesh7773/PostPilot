@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../config/env.dart';
 import '../constants/api_endpoints.dart';
 import '../constants/app_constants.dart';
+import 'supabase_client.dart';
 
 part 'api_client.g.dart';
 
@@ -26,7 +27,7 @@ Dio apiClient(Ref ref) {
     ),
   );
 
-  dio.interceptors.add(_interceptor());
+  dio.interceptors.add(_interceptor(ref));
 
   if (Env.enableLogs && kDebugMode) {
     dio.interceptors.add(
@@ -45,7 +46,7 @@ Dio apiClient(Ref ref) {
   return dio;
 }
 
-Interceptor _interceptor() {
+Interceptor _interceptor(Ref ref) {
   return InterceptorsWrapper(
     onRequest: (options, handler) {
       final apiToken = Env.apiToken;
@@ -53,9 +54,25 @@ Interceptor _interceptor() {
         options.headers['Api-Token'] = apiToken;
       }
 
+      // supabase_flutter refreshes the session automatically, so the
+      // current access token is always the one to send to our backend.
+      final accessToken =
+          ref.read(supabaseClientProvider).auth.currentSession?.accessToken;
+      if (accessToken != null) {
+        options.headers['Authorization'] = 'Bearer $accessToken';
+      }
+
       return handler.next(options);
     },
     onError: (error, handler) {
+      // The mapped message below is user-facing; keep the real cause in logs.
+      if (kDebugMode) {
+        debugPrint(
+          'ApiClient: ${error.requestOptions.method} '
+          '${error.requestOptions.uri} failed: ${error.type} ${error.error}',
+        );
+      }
+
       String message = 'Something went wrong';
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout ||
