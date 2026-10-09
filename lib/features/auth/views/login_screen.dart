@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validators.dart';
@@ -48,17 +49,27 @@ class LoginScreen extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.rocket_launch_outlined,
-                    size: 56,
-                    color: AppColors.primary,
+                  Center(
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.gradient,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(
+                        Icons.rocket_launch_rounded,
+                        size: 38,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Text(
                     isSignUp.value
                         ? 'Create your account'
                         : 'Welcome to ${AppConstants.appName}',
-                    style: textTheme.headlineSmall,
+                    style: textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -67,7 +78,7 @@ class LoginScreen extends HookConsumerWidget {
                         ? 'Start planning and publishing with AI.'
                         : 'Sign in to continue.',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),

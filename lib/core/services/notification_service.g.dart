@@ -55,7 +55,7 @@ final class NotificationServiceProvider
 }
 
 String _$notificationServiceHash() =>
-    r'2c94660b010dff0cd688f1036ff9f584c4fbf5af';
+    r'28022443acce47dffb918511bab8f81236f331d8';
 
 /// Async-init notification service. `build()` initializes the
 /// `AwesomeNotifications` plugin and returns it. Callers do:

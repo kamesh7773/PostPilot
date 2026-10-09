@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../models/social_account.dart';
 
@@ -20,12 +21,6 @@ class SocialAccountTile extends StatelessWidget {
     final needsReauth = account.status == SocialAccountStatus.needsReauth;
 
     return Card(
-      elevation: 0,
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
-      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: _Avatar(url: account.profilePictureUrl),
@@ -36,7 +31,9 @@ class SocialAccountTile extends StatelessWidget {
         subtitle: Text(
           needsReauth ? 'Reconnect needed' : account.displayName ?? 'Instagram',
           style: TextStyle(
-            color: needsReauth ? AppColors.warning : AppColors.textSecondary,
+            color: needsReauth
+                ? AppColors.warning
+                : context.colorScheme.onSurfaceVariant,
           ),
         ),
         trailing: PopupMenuButton<VoidCallback>(
@@ -60,9 +57,12 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const fallback = CircleAvatar(
-      backgroundColor: AppColors.border,
-      child: Icon(Icons.camera_alt_outlined, color: AppColors.textSecondary),
+    final fallback = CircleAvatar(
+      backgroundColor: context.colorScheme.outlineVariant,
+      child: Icon(
+        Icons.camera_alt_outlined,
+        color: context.colorScheme.onSurfaceVariant,
+      ),
     );
     if (url == null) return fallback;
 

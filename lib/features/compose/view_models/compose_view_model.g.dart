@@ -41,7 +41,7 @@ final class ComposeViewModelProvider
   }
 }
 
-String _$composeViewModelHash() => r'6ab6053faf7a425f0d5b8c815ffd1388a61ee6cc';
+String _$composeViewModelHash() => r'3dbc0975380a4e2e82eba807a03f3e339bc77038';
 
 abstract class _$ComposeViewModel extends $Notifier<ComposeState> {
   ComposeState build();

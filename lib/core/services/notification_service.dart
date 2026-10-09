@@ -12,6 +12,9 @@ class NotificationChannels {
   static const String general = 'general_channel';
   static const String reminders = 'reminders_channel';
   static const String updates = 'updates_channel';
+
+  /// Publish results. The backend's FCM messages target this channel id.
+  static const String postUpdates = 'post_updates';
 }
 
 class AppNotification {
@@ -90,6 +93,15 @@ class NotificationService extends _$NotificationService {
           channelName: 'Reminders',
           channelDescription: 'Reminder notifications',
           defaultColor: AppColors.secondary,
+          ledColor: Colors.white,
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        ),
+        NotificationChannel(
+          channelKey: NotificationChannels.postUpdates,
+          channelName: 'Post updates',
+          channelDescription: 'When your posts are published or fail',
+          defaultColor: AppColors.primary,
           ledColor: Colors.white,
           importance: NotificationImportance.High,
           channelShowBadge: true,

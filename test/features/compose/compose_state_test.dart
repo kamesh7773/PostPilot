@@ -1,4 +1,4 @@
-import 'package:base_flutter_application/features/compose/view_models/compose_state.dart';
+import 'package:postpilot/features/compose/view_models/compose_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

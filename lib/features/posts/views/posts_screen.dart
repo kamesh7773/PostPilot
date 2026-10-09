@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/services/dialog_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/helpers.dart';
@@ -86,8 +87,8 @@ class _PostsList extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
               child: Text(
                 formatPostDay(context, day.key),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -167,15 +168,10 @@ class _PostTile extends ConsumerWidget {
     }
 
     return Card(
-      elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
-      ),
       child: ListTile(
         leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: SizedBox(
             width: 48,
             height: 48,
@@ -200,7 +196,7 @@ class _PostTile extends ConsumerWidget {
           style: TextStyle(
             color: post.status == PostStatus.failed
                 ? AppColors.error
-                : AppColors.textSecondary,
+                : context.colorScheme.onSurfaceVariant,
           ),
         ),
         trailing: switch (post.status) {

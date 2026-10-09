@@ -1,5 +1,5 @@
-name: base_flutter_application
-description: "A new Flutter project."
+name: postpilot
+description: "PostPilot — AI social media manager for creators."
 publish_to: "none"
 version: 1.0.0+1
 
@@ -48,6 +48,8 @@ dependencies:
   image: ^4.10.1
   video_compress: ^3.1.4
   flutter_timezone: ^5.1.1
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 
 dev_dependencies:
   flutter_test:
@@ -91,6 +93,19 @@ flutter:
     - .env.development
     - .env.staging
     - .env.production
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+          weight: 800
 
 # App launcher icon (Android + iOS)
 # Drop a 1024x1024 PNG at assets/icons/app_logo.png, then run:

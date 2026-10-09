@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/dialog_service.dart';
+import '../../../core/services/push_service.dart';
 import '../repositories/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -45,5 +46,8 @@ class AuthViewModel extends _$AuthViewModel {
     }
   }
 
-  Future<void> signOut() => _repo.signOut();
+  Future<void> signOut() async {
+    await ref.read(pushServiceProvider.notifier).unregister();
+    await _repo.signOut();
+  }
 }

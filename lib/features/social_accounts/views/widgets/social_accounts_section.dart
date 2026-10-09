@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/services/dialog_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -47,12 +48,12 @@ class SocialAccountsSection extends ConsumerWidget {
           _LoadError(message: state.error!, onRetry: vm.load)
         else ...[
           if (state.accounts.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 12),
               child: Text(
                 'Connect your Instagram professional account to start '
                 'scheduling and publishing.',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: context.colorScheme.onSurfaceVariant),
               ),
             ),
           for (final account in state.accounts) ...[

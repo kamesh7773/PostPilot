@@ -139,6 +139,7 @@ class ComposeRepository extends BaseApiService {
     bool shareToFeed = true,
     DateTime? scheduledAt,
     String? timezone,
+    String? planItemId,
   }) async {
     try {
       final response = await post(
@@ -156,6 +157,7 @@ class ComposeRepository extends BaseApiService {
           if (scheduledAt != null)
             'scheduledAt': scheduledAt.toUtc().toIso8601String(),
           if (timezone != null && timezone.isNotEmpty) 'timezone': timezone,
+          'planItemId': ?planItemId,
         },
       );
       return ApiResponse.success(_post(response.data));

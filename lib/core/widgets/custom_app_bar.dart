@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../theme/app_colors.dart';
-
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final Widget? titleWidget;
@@ -11,8 +9,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final List<Widget>? actions;
   final Widget? leading;
-  final Color backgroundColor;
-  final Color foregroundColor;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
   final double elevation;
   final bool centerTitle;
   final PreferredSizeWidget? bottom;
@@ -26,10 +24,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.actions,
     this.leading,
-    this.backgroundColor = AppColors.surface,
-    this.foregroundColor = AppColors.textPrimary,
+    this.backgroundColor,
+    this.foregroundColor,
     this.elevation = 0,
-    this.centerTitle = true,
+    this.centerTitle = false,
     this.bottom,
     this.systemOverlayStyle,
   });
@@ -67,8 +65,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? Text(
                   title!,
                   style: TextStyle(
-                    fontSize: 17.sp,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
                     color: foregroundColor,
                   ),
                 )

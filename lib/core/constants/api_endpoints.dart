@@ -20,6 +20,16 @@ class ApiEndpoints {
   static String post(String id) => '/posts/$id';
   static String publishPost(String id) => '/posts/$id/publish';
 
+  // Push notifications
+  static const String devices = '/devices';
+
+  // Creator profile & AI
+  static const String profile = '/profile';
+  static const String aiCaption = '/ai/caption';
+  static const String aiPlan = '/ai/plan';
+  static const String plan = '/plan';
+  static String planItem(String id) => '/plan/$id';
+
   // Exemple of api endpoints
   // static const String products = '/products';
   // static String productById(int id) => '/products/$id';

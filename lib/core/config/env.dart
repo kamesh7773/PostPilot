@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -57,6 +58,21 @@ class Env {
   // Supabase publishable key — safe to ship in the app.
   static String get supabasePublishableKey =>
       dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '';
+
+  /// This flavor's Firebase app (used for push notifications only).
+  static FirebaseOptions get firebaseOptions {
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
+    final e = dotenv.env;
+    return FirebaseOptions(
+      apiKey: e[ios ? 'FIREBASE_IOS_API_KEY' : 'FIREBASE_ANDROID_API_KEY']!,
+      appId: e[ios ? 'FIREBASE_IOS_APP_ID' : 'FIREBASE_ANDROID_APP_ID']!,
+      messagingSenderId: e['FIREBASE_MESSAGING_SENDER_ID']!,
+      projectId: e['FIREBASE_PROJECT_ID']!,
+      storageBucket: e['FIREBASE_STORAGE_BUCKET'],
+      iosBundleId: ios ? e['FIREBASE_IOS_BUNDLE_ID'] : null,
+    );
+  }
+
   static bool get enableLogs => dotenv.env['ENABLE_LOGS'] == 'true';
   static bool get enableAnalytics => dotenv.env['ENABLE_ANALYTICS'] == 'true';
   static bool get enableCrashReporting =>

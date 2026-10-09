@@ -49,6 +49,9 @@ class ComposeState {
   /// Local time to publish at; null means publish now.
   final DateTime? scheduledAt;
 
+  /// The AI plan slot this post fills, if opened from the plan.
+  final String? planItemId;
+
   final ComposeStep step;
 
   /// 0.0–1.0 for the current step when known (encoding, uploading).
@@ -63,6 +66,7 @@ class ComposeState {
     this.items = const [],
     this.shareToFeed = true,
     this.scheduledAt,
+    this.planItemId,
     this.step = ComposeStep.idle,
     this.progress,
   });
@@ -95,6 +99,7 @@ class ComposeState {
     List<CarouselItem>? items,
     bool? shareToFeed,
     Object? scheduledAt = _sentinel,
+    String? planItemId,
     ComposeStep? step,
     Object? progress = _sentinel,
   }) => ComposeState(
@@ -108,6 +113,7 @@ class ComposeState {
     scheduledAt: scheduledAt == _sentinel
         ? this.scheduledAt
         : scheduledAt as DateTime?,
+    planItemId: planItemId ?? this.planItemId,
     step: step ?? this.step,
     progress: progress == _sentinel
         ? this.progress

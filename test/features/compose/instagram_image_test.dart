@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:base_flutter_application/features/compose/services/instagram_image.dart';
+import 'package:postpilot/features/compose/services/instagram_image.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 

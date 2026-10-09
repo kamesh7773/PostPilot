@@ -1,4 +1,4 @@
-package com.example.baseapp
+package com.postpilot.app
 
 import io.flutter.embedding.android.FlutterActivity
 

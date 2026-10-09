@@ -12,6 +12,7 @@ import 'core/routes/route_generator.dart';
 import 'core/routes/routes.dart';
 import 'core/services/navigation_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_mode_controller.dart';
 import 'features/auth/repositories/auth_repository.dart';
 
 class PostPilotApp extends ConsumerWidget {
@@ -27,6 +28,7 @@ class PostPilotApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final navigationService = ref.watch(navigationServiceProvider.notifier);
     final isSignedIn = ref.read(authRepositoryProvider).isSignedIn;
+    final themeMode = ref.watch(themeModeControllerProvider);
 
     // Single place that reacts to auth changes: sign-in from the login
     // screen, sign-out from anywhere, or the session being revoked.
@@ -54,6 +56,8 @@ class PostPilotApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           navigatorKey: navigationService.navigatorKey,
           theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -69,14 +73,17 @@ class PostPilotApp extends ConsumerWidget {
           ],
           onGenerateRoute: RouteGenerator.generateRoute,
           builder: (context, child) {
+            final theme = Theme.of(context);
+            final isDark = theme.brightness == Brightness.dark;
+            final iconBrightness = isDark ? Brightness.light : Brightness.dark;
             final content = ToastificationWrapper(
               child: AnnotatedRegion<SystemUiOverlayStyle>(
-                value: const SystemUiOverlayStyle(
+                value: SystemUiOverlayStyle(
                   statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.dark,
-                  statusBarBrightness: Brightness.light,
-                  systemNavigationBarColor: Colors.white,
-                  systemNavigationBarIconBrightness: Brightness.dark,
+                  statusBarIconBrightness: iconBrightness,
+                  statusBarBrightness: theme.brightness,
+                  systemNavigationBarColor: theme.scaffoldBackgroundColor,
+                  systemNavigationBarIconBrightness: iconBrightness,
                 ),
                 child: child ?? const SizedBox.shrink(),
               ),

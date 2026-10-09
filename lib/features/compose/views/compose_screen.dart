@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/services/dialog_service.dart';
+import '../../ai/models/plan_item.dart';
+import '../../ai/repositories/ai_repository.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -19,7 +22,10 @@ import '../view_models/compose_view_model.dart';
 const _maxCaptionLength = 2200;
 
 class ComposeScreen extends HookConsumerWidget {
-  const ComposeScreen({super.key});
+  /// Opened from the AI plan: pre-fills type, caption and time.
+  final PlanItem? planItem;
+
+  const ComposeScreen({super.key, this.planItem});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,8 +37,13 @@ class ComposeScreen extends HookConsumerWidget {
         .where((a) => a.status == SocialAccountStatus.active)
         .toList();
 
-    final captionController = useTextEditingController();
+    final captionController = useTextEditingController(text: planItem?.caption);
     useListenable(captionController);
+    useEffect(() {
+      // After the first frame: providers can't change during build.
+      if (planItem != null) Future.microtask(() => vm.applyPlan(planItem!));
+      return null;
+    }, const []);
 
     final isReel = state.kind == MediaKind.reel;
 
@@ -45,145 +56,227 @@ class ComposeScreen extends HookConsumerWidget {
               .showInfo('Publishing continues in the background.');
         }
       },
-      child: AppScaffold(
-        appBar: const CustomAppBar(title: 'Create post'),
-        body: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            SegmentedButton<MediaKind>(
-              // Labels only: four segments with icons don't fit a phone.
-              showSelectedIcon: false,
-              segments: const [
-                ButtonSegment(value: MediaKind.photo, label: Text('Photo')),
-                ButtonSegment(value: MediaKind.reel, label: Text('Reel')),
-                ButtonSegment(value: MediaKind.story, label: Text('Story')),
-                ButtonSegment(
-                  value: MediaKind.carousel,
-                  label: Text('Carousel'),
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: AppScaffold(
+          appBar: CustomAppBar(
+            title: planItem == null ? 'Create post' : 'Fill your slot',
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              SegmentedButton<MediaKind>(
+                // Labels only: four segments with icons don't fit a phone.
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: MediaKind.photo, label: Text('Photo')),
+                  ButtonSegment(value: MediaKind.reel, label: Text('Reel')),
+                  ButtonSegment(value: MediaKind.story, label: Text('Story')),
+                  ButtonSegment(
+                    value: MediaKind.carousel,
+                    label: Text('Carousel'),
+                  ),
+                ],
+                selected: {state.kind},
+                onSelectionChanged: state.isBusy
+                    ? null
+                    : (selection) => vm.setKind(selection.first),
+              ),
+              const SizedBox(height: 16),
+              if (planItem != null) ...[
+                _PlanBanner(item: planItem!),
+                const SizedBox(height: 16),
+              ],
+              if (accounts.length > 1) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: state.accountId,
+                  decoration: const InputDecoration(labelText: 'Post to'),
+                  items: [
+                    for (final a in accounts)
+                      DropdownMenuItem(
+                        value: a.id,
+                        child: Text('@${a.username}'),
+                      ),
+                  ],
+                  onChanged: state.isBusy
+                      ? null
+                      : (id) => id == null ? null : vm.selectAccount(id),
+                ),
+                const SizedBox(height: 16),
+              ] else if (accounts.length == 1) ...[
+                Text(
+                  'Posting to @${accounts.first.username}',
+                  style: TextStyle(color: context.colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 16),
+              ],
+              _MediaBox(
+                state: state,
+                onPick: () {
+                  // Close the keyboard (and any open text menu) before the
+                  // picker covers the screen.
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  vm.pickMedia();
+                },
+                onRemove: vm.removeMedia,
+                onRemoveItem: vm.removeCarouselItem,
+              ),
+              if (state.kind == MediaKind.carousel) ...[
+                const SizedBox(height: 8),
+                const _Hint(
+                  icon: Icons.info_outline,
+                  text:
+                      '2 to 10 photos or videos. Instagram crops every item to '
+                      'the shape of the first one.',
                 ),
               ],
-              selected: {state.kind},
-              onSelectionChanged: state.isBusy
-                  ? null
-                  : (selection) => vm.setKind(selection.first),
-            ),
-            const SizedBox(height: 16),
-            if (accounts.length > 1) ...[
-              DropdownButtonFormField<String>(
-                initialValue: state.accountId,
-                decoration: const InputDecoration(labelText: 'Post to'),
-                items: [
-                  for (final a in accounts)
-                    DropdownMenuItem(
-                      value: a.id,
-                      child: Text('@${a.username}'),
-                    ),
-                ],
-                onChanged: state.isBusy
-                    ? null
-                    : (id) => id == null ? null : vm.selectAccount(id),
-              ),
+              if (!isReel && state.wasCropped) ...[
+                const SizedBox(height: 8),
+                const _Hint(
+                  icon: Icons.crop,
+                  text:
+                      'Cropped to fit Instagram (between 4:5 portrait and '
+                      '1.91:1 landscape). The preview shows what will be posted.',
+                ),
+              ],
               const SizedBox(height: 16),
-            ] else if (accounts.length == 1) ...[
-              Text(
-                'Posting to @${accounts.first.username}',
-                style: const TextStyle(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 16),
-            ],
-            _MediaBox(
-              state: state,
-              onPick: () {
-                // Close the keyboard (and any open text menu) before the
-                // picker covers the screen.
-                FocusManager.instance.primaryFocus?.unfocus();
-                vm.pickMedia();
-              },
-              onRemove: vm.removeMedia,
-              onRemoveItem: vm.removeCarouselItem,
-            ),
-            if (state.kind == MediaKind.carousel) ...[
-              const SizedBox(height: 8),
-              const _Hint(
-                icon: Icons.info_outline,
-                text:
-                    '2 to 10 photos or videos. Instagram crops every item to '
-                    'the shape of the first one.',
-              ),
-            ],
-            if (!isReel && state.wasCropped) ...[
-              const SizedBox(height: 8),
-              const _Hint(
-                icon: Icons.crop,
-                text:
-                    'Cropped to fit Instagram (between 4:5 portrait and '
-                    '1.91:1 landscape). The preview shows what will be posted.',
-              ),
-            ],
-            const SizedBox(height: 16),
-            if (state.kind == MediaKind.story)
-              const _Hint(
-                icon: Icons.info_outline,
-                text:
-                    'Stories are published as-is: Instagram does not allow '
-                    'captions, stickers, links or music through its API.',
-              )
-            else
-              TextField(
-                controller: captionController,
+              if (state.kind == MediaKind.story)
+                const _Hint(
+                  icon: Icons.info_outline,
+                  text:
+                      'Stories are published as-is: Instagram does not allow '
+                      'captions, stickers, links or music through its API.',
+                )
+              else
+                TextField(
+                  controller: captionController,
+                  enabled: !state.isBusy,
+                  maxLines: 6,
+                  minLines: 3,
+                  maxLength: _maxCaptionLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    labelText: 'Caption',
+                    hintText: 'Write a caption… #hashtags welcome',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              if (state.kind != MediaKind.story)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    label: const Text('Write with AI'),
+                    onPressed: state.isBusy
+                        ? null
+                        : () => _writeWithAi(
+                            context,
+                            ref,
+                            state,
+                            captionController,
+                          ),
+                  ),
+                ),
+              if (isReel)
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Also share to feed'),
+                  subtitle: const Text(
+                    'Show this Reel on your profile grid, not just the Reels tab.',
+                  ),
+                  value: state.shareToFeed,
+                  onChanged: state.isBusy ? null : vm.setShareToFeed,
+                ),
+              _ScheduleTile(
+                scheduledAt: state.scheduledAt,
                 enabled: !state.isBusy,
-                maxLines: 6,
-                minLines: 3,
-                maxLength: _maxCaptionLength,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Caption',
-                  hintText: 'Write a caption… #hashtags welcome',
-                  alignLabelWithHint: true,
+                onChanged: vm.setSchedule,
+              ),
+              const SizedBox(height: 8),
+              CustomButton(
+                text: _buttonText(state),
+                icon: state.scheduledAt == null
+                    ? Icons.send_rounded
+                    : Icons.schedule_send_outlined,
+                isLoading: state.isBusy,
+                onPressed: state.canPublish
+                    ? () => vm.publish(captionController.text)
+                    : null,
+              ),
+              if (state.isBusy) ...[
+                const SizedBox(height: 12),
+                _ProgressStatus(state: state),
+              ],
+              if (accounts.isEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Connect an Instagram account on the Home screen first.',
+                  style: TextStyle(color: context.colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            if (isReel)
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Also share to feed'),
-                subtitle: const Text(
-                  'Show this Reel on your profile grid, not just the Reels tab.',
-                ),
-                value: state.shareToFeed,
-                onChanged: state.isBusy ? null : vm.setShareToFeed,
-              ),
-            _ScheduleTile(
-              scheduledAt: state.scheduledAt,
-              enabled: !state.isBusy,
-              onChanged: vm.setSchedule,
-            ),
-            const SizedBox(height: 8),
-            CustomButton(
-              text: _buttonText(state),
-              icon: state.scheduledAt == null
-                  ? Icons.send_rounded
-                  : Icons.schedule_send_outlined,
-              isLoading: state.isBusy,
-              onPressed: state.canPublish
-                  ? () => vm.publish(captionController.text)
-                  : null,
-            ),
-            if (state.isBusy) ...[
-              const SizedBox(height: 12),
-              _ProgressStatus(state: state),
+              ],
             ],
-            if (accounts.isEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'Connect an Instagram account on the Home screen first.',
-                style: TextStyle(color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  /// Asks what the post is about, then fills the caption from the AI.
+  static Future<void> _writeWithAi(
+    BuildContext context,
+    WidgetRef ref,
+    ComposeState state,
+    TextEditingController caption,
+  ) async {
+    final topicController = TextEditingController(text: caption.text);
+    final topic = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('What is this post about?'),
+        content: TextField(
+          controller: topicController,
+          autofocus: true,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'e.g. 5-minute beginner home workout',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, topicController.text.trim()),
+            child: const Text('Write'),
+          ),
+        ],
+      ),
+    );
+    if (topic == null || topic.isEmpty || !context.mounted) return;
+
+    final dialog = ref.read(dialogServiceProvider.notifier);
+    dialog.showInfo('Writing your caption…');
+    final result = await ref
+        .read(aiRepositoryProvider)
+        .caption(
+          type: switch (state.kind) {
+            MediaKind.photo => 'image',
+            MediaKind.reel => 'reel',
+            MediaKind.story => 'story',
+            MediaKind.carousel => 'carousel',
+          },
+          topic: topic,
+        );
+    if (!context.mounted) return;
+    if (result.isSuccess) {
+      caption.text = result.data!.full;
+    } else if (result.statusCode == 409) {
+      dialog.showError('Set up your creator profile on the Home screen first.');
+    } else {
+      dialog.showError(result.error!, title: "Couldn't write caption");
+    }
   }
 
   static String _buttonText(ComposeState state) => switch (state.step) {
@@ -231,7 +324,7 @@ class _ProgressStatus extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           text,
-          style: const TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: context.colorScheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
       ],
@@ -250,13 +343,13 @@ class _Hint extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
+        Icon(icon, size: 16, color: context.colorScheme.onSurfaceVariant),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: context.colorScheme.onSurfaceVariant,
               fontSize: 12,
             ),
           ),
@@ -279,7 +372,7 @@ class _MediaBox extends StatelessWidget {
     required this.onRemoveItem,
   });
 
-  static final _radius = BorderRadius.circular(12);
+  static final _radius = BorderRadius.circular(20);
 
   @override
   Widget build(BuildContext context) {
@@ -292,7 +385,10 @@ class _MediaBox extends StatelessWidget {
     }
 
     if (state.step == ComposeStep.preparing && !state.hasMedia) {
-      return _frame(child: const Center(child: CircularProgressIndicator()));
+      return _frame(
+        context,
+        child: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (!state.hasMedia) {
@@ -300,6 +396,7 @@ class _MediaBox extends StatelessWidget {
         onTap: state.isBusy ? null : onPick,
         borderRadius: _radius,
         child: _frame(
+          context,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -329,8 +426,8 @@ class _MediaBox extends StatelessWidget {
                   MediaKind.story => 'Full-screen vertical 9:16 works best',
                   MediaKind.carousel => 'Square or portrait (4:5) work best',
                 },
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -368,12 +465,12 @@ class _MediaBox extends StatelessWidget {
     );
   }
 
-  Widget _frame({required Widget child}) => Ink(
+  Widget _frame(BuildContext context, {required Widget child}) => Ink(
     height: 220,
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: context.colorScheme.surface,
       borderRadius: _radius,
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: context.colorScheme.outlineVariant),
     ),
     child: child,
   );
@@ -466,7 +563,7 @@ class _CarouselStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canAdd = state.items.length < maxCarouselItems;
-    final radius = BorderRadius.circular(10);
+    final radius = BorderRadius.circular(14);
 
     return SizedBox(
       height: 160,
@@ -482,9 +579,9 @@ class _CarouselStrip extends StatelessWidget {
               child: Ink(
                 width: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.colorScheme.surface,
                   borderRadius: radius,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.colorScheme.outlineVariant),
                 ),
                 child: state.step == ComposeStep.preparing
                     ? const Center(child: CircularProgressIndicator())
@@ -606,6 +703,49 @@ class _ScheduleTile extends StatelessWidget {
               onPressed: enabled ? () => onChanged(null) : null,
             ),
       onTap: () => _pick(context),
+    );
+  }
+}
+
+/// What the AI planned for this slot, so the user knows what to shoot.
+class _PlanBanner extends StatelessWidget {
+  final PlanItem item;
+
+  const _PlanBanner({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.auto_awesome, color: colors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.title, style: context.textTheme.titleSmall),
+                if (item.hook.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Hook: ${item.hook}',
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

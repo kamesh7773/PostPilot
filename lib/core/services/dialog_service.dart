@@ -92,7 +92,7 @@ class DialogService extends _$DialogService {
       title: Text(title),
       description: Text(message),
       primaryColor: primaryColor,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       dragToClose: true,
       pauseOnHover: true,
       closeOnClick: true,

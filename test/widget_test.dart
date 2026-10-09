@@ -1,5 +1,5 @@
-import 'package:base_flutter_application/core/routes/route_generator.dart';
-import 'package:base_flutter_application/core/routes/routes.dart';
+import 'package:postpilot/core/routes/route_generator.dart';
+import 'package:postpilot/core/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

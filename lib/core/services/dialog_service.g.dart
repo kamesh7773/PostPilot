@@ -65,7 +65,7 @@ final class DialogServiceProvider
   }
 }
 
-String _$dialogServiceHash() => r'f384f9eb70310ea8423a94da2366af9c9c6c43c6';
+String _$dialogServiceHash() => r'5c300e651061f1834ced1809c4165b8ee6911d68';
 
 /// In-app messaging service.
 ///

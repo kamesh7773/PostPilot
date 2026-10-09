@@ -2,6 +2,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../ai/models/plan_item.dart';
 import '../../../core/services/dialog_service.dart';
 import '../../../core/services/navigation_service.dart';
 import '../../social_accounts/models/social_account.dart';
@@ -50,6 +51,24 @@ class ComposeViewModel extends _$ComposeViewModel {
 
   /// null = publish now.
   void setSchedule(DateTime? when) => state = state.copyWith(scheduledAt: when);
+
+  /// Pre-fills type and time from an AI plan slot. A slot whose time has
+  /// passed publishes now unless the user picks a new time.
+  void applyPlan(PlanItem item) {
+    final when = item.when;
+    state = state.copyWith(
+      kind: switch (item.format) {
+        'reel' => MediaKind.reel,
+        'story' => MediaKind.story,
+        'carousel' => MediaKind.carousel,
+        _ => MediaKind.photo,
+      },
+      scheduledAt: when.isAfter(DateTime.now().add(const Duration(minutes: 2)))
+          ? when
+          : null,
+      planItemId: item.id,
+    );
+  }
 
   void removeMedia() => state = state.copyWith(
     imagePath: null,
@@ -202,6 +221,7 @@ class ComposeViewModel extends _$ComposeViewModel {
       caption: state.kind == MediaKind.story ? '' : caption.trim(),
       shareToFeed: state.shareToFeed,
       scheduledAt: scheduledAt,
+      planItemId: state.planItemId,
       timezone: scheduledAt == null
           ? null
           : await FlutterTimezone.getLocalTimezone()

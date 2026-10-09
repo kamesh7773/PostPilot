@@ -3,5 +3,5 @@
 FLUTTER_TARGET=lib/main_development.dart
 ASSET_PREFIX=development
 BUNDLE_SUFFIX=.dev
-PRODUCT_BUNDLE_IDENTIFIER=com.example.baseapp.dev
-DISPLAY_NAME=Flutter Dev
+PRODUCT_BUNDLE_IDENTIFIER=com.postpilot.app.dev
+DISPLAY_NAME=PostPilot Dev

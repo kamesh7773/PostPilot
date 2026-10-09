@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.baseapp"
+    namespace = "com.postpilot.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.baseapp"
+        applicationId = "com.postpilot.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -33,17 +33,17 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            resValue("string", "app_name", "Flutter Dev")
+            resValue("string", "app_name", "PostPilot Dev")
         }
         create("staging") {
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
-            resValue("string", "app_name", "Flutter Staging")
+            resValue("string", "app_name", "PostPilot Staging")
         }
         create("production") {
             dimension = "environment"
-            resValue("string", "app_name", "Flutter")
+            resValue("string", "app_name", "PostPilot")
         }
     }
 

@@ -1,25 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/routes/routes.dart';
 import '../../../core/services/dialog_service.dart';
 import '../../../core/services/navigation_service.dart';
+import '../../../core/services/push_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../auth/view_models/auth_view_model.dart';
+import '../../profile/view_models/profile_view_model.dart';
 import '../../social_accounts/models/social_account.dart';
 import '../../social_accounts/view_models/social_accounts_view_model.dart';
 import '../../social_accounts/views/widgets/social_accounts_section.dart';
 import '../view_models/home_view_model.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends HookConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Home is only shown when signed in: register this device for alerts.
+    useEffect(() {
+      ref.read(pushServiceProvider.notifier).register();
+      return null;
+    }, const []);
+
     final currentUser = ref.watch(currentUserProvider);
+    final profile = ref.watch(profileViewModelProvider);
+    final navigation = ref.read(navigationServiceProvider.notifier);
     final canPost = ref
         .watch(socialAccountsViewModelProvider)
         .accounts
@@ -54,11 +67,27 @@ class HomeScreen extends ConsumerWidget {
         showBackButton: false,
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Creator profile',
+            onPressed: () => navigation.pushNamed(Routes.profileSetup),
+          ),
+          IconButton(
             icon: const Icon(Icons.calendar_month_outlined),
             tooltip: 'My posts',
             onPressed: () => ref
                 .read(navigationServiceProvider.notifier)
                 .pushNamed(Routes.posts),
+          ),
+          PopupMenuButton<ThemeMode>(
+            icon: const Icon(Icons.dark_mode_outlined),
+            tooltip: 'Theme',
+            initialValue: ref.watch(themeModeControllerProvider),
+            onSelected: ref.read(themeModeControllerProvider.notifier).set,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+              PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+              PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -78,6 +107,28 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(24),
                 children: [
                   _Welcome(email: response.data!.email),
+                  const SizedBox(height: 20),
+                  if (profile.hasValue && profile.value == null)
+                    _SetupCard(
+                      icon: Icons.person_outline,
+                      title: 'Set up your creator profile',
+                      body:
+                          'Answer a few questions so PostPilot can suggest '
+                          'what to post and when.',
+                      action: 'Get started',
+                      onTap: () => navigation.pushNamed(Routes.profileSetup),
+                    )
+                  else if (profile.value != null)
+                    _SetupCard(
+                      icon: Icons.auto_awesome,
+                      title: 'Your AI weekly plan',
+                      body:
+                          'What to post and when for your '
+                          '${profile.value!.niche.toLowerCase()} audience. '
+                          'You just add the media.',
+                      action: 'Open',
+                      onTap: () => navigation.pushNamed(Routes.plan),
+                    ),
                   const SizedBox(height: 32),
                   const SocialAccountsSection(),
                 ],
@@ -100,29 +151,31 @@ class _Welcome extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Row(
-      children: [
-        const Icon(
-          Icons.rocket_launch_outlined,
-          size: 40,
-          color: AppColors.primary,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Welcome back', style: textTheme.titleLarge),
-              Text(
-                email,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: AppColors.gradient,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hey there 👋',
+            style: textTheme.headlineMedium?.copyWith(color: Colors.white),
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            'What are we posting today?',
+            style: textTheme.titleMedium?.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            email,
+            style: textTheme.bodySmall?.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -151,7 +204,7 @@ class _BackendError extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               message,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -162,6 +215,44 @@ class _BackendError extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SetupCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final String action;
+  final VoidCallback onTap;
+
+  const _SetupCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.action,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: context.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: AppColors.primary),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(body),
+        trailing: TextButton(onPressed: onTap, child: Text(action)),
+        onTap: onTap,
       ),
     );
   }

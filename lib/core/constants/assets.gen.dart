@@ -28,7 +28,7 @@ class $AssetsIconsGen {
 class AppAssets {
   const AppAssets._();
 
-  static const String package = 'base_flutter_application';
+  static const String package = 'postpilot';
 
   static const $AssetsIconsGen icons = $AssetsIconsGen();
 }
@@ -43,7 +43,7 @@ class AssetGenImage {
 
   final String _assetName;
 
-  static const String package = 'base_flutter_application';
+  static const String package = 'postpilot';
 
   final Size? size;
   final Set<String> flavors;
@@ -113,7 +113,7 @@ class AssetGenImage {
 
   String get path => _assetName;
 
-  String get keyName => 'packages/base_flutter_application/$_assetName';
+  String get keyName => 'packages/postpilot/$_assetName';
 }
 
 class AssetGenImageAnimation {
