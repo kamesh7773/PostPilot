@@ -56,8 +56,11 @@ Interceptor _interceptor(Ref ref) {
 
       // supabase_flutter refreshes the session automatically, so the
       // current access token is always the one to send to our backend.
-      final accessToken =
-          ref.read(supabaseClientProvider).auth.currentSession?.accessToken;
+      final accessToken = ref
+          .read(supabaseClientProvider)
+          .auth
+          .currentSession
+          ?.accessToken;
       if (accessToken != null) {
         options.headers['Authorization'] = 'Bearer $accessToken';
       }

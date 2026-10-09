@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/routes/routes.dart';
 import '../../../core/services/dialog_service.dart';
+import '../../../core/services/navigation_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../auth/view_models/auth_view_model.dart';
+import '../../social_accounts/models/social_account.dart';
+import '../../social_accounts/view_models/social_accounts_view_model.dart';
 import '../../social_accounts/views/widgets/social_accounts_section.dart';
 import '../view_models/home_view_model.dart';
 
@@ -16,6 +20,10 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
+    final canPost = ref
+        .watch(socialAccountsViewModelProvider)
+        .accounts
+        .any((a) => a.status == SocialAccountStatus.active);
 
     Future<void> confirmSignOut() async {
       final confirmed = await ref
@@ -30,10 +38,28 @@ class HomeScreen extends ConsumerWidget {
     }
 
     return AppScaffold(
+      floatingActionButton: canPost
+          ? FloatingActionButton.extended(
+              onPressed: () => ref
+                  .read(navigationServiceProvider.notifier)
+                  .pushNamed(Routes.compose),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: const Text('Create post'),
+            )
+          : null,
       appBar: CustomAppBar(
         title: AppConstants.appName,
         showBackButton: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined),
+            tooltip: 'My posts',
+            onPressed: () => ref
+                .read(navigationServiceProvider.notifier)
+                .pushNamed(Routes.posts),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign out',

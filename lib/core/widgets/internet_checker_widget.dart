@@ -49,14 +49,14 @@ class InternetCheckerWidget extends HookConsumerWidget {
                   padding: padding,
                 )
               : (showOnlineRestored
-                  ? _StatusBanner(
-                      key: const ValueKey('online'),
-                      message: onlineMessage,
-                      color: AppColors.success,
-                      icon: Icons.wifi_rounded,
-                      padding: padding,
-                    )
-                  : const SizedBox.shrink(key: ValueKey('idle'))),
+                    ? _StatusBanner(
+                        key: const ValueKey('online'),
+                        message: onlineMessage,
+                        color: AppColors.success,
+                        icon: Icons.wifi_rounded,
+                        padding: padding,
+                      )
+                    : const SizedBox.shrink(key: ValueKey('idle'))),
         ),
         Expanded(child: child),
       ],

@@ -1,11 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-enum Environment {
-  development,
-  staging,
-  production,
-}
+enum Environment { development, staging, production }
 
 class Env {
   static late Environment _environment;
@@ -37,7 +33,8 @@ class Env {
     if (kReleaseMode && !enableLogs) return;
 
     final flavor = _environment.name.toUpperCase();
-    final banner = '''
+    final banner =
+        '''
 ╔══════════════════════════════════════════════════════════╗
 ║  🚀 App launched — flavor: $flavor
 ╠══════════════════════════════════════════════════════════╣

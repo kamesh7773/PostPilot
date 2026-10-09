@@ -66,8 +66,9 @@ class LoginScreen extends HookConsumerWidget {
                     isSignUp.value
                         ? 'Start planning and publishing with AI.'
                         : 'Sign in to continue.',
-                    style: textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.textSecondary),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),

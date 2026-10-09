@@ -36,7 +36,5 @@ Future<void> main() async {
     ),
   );
 
-  runApp(
-    const ProviderScope(child: PostPilotApp()),
-  );
+  runApp(const ProviderScope(child: PostPilotApp()));
 }
