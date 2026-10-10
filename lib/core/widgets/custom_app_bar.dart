@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -53,7 +52,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? IconButton(
                   icon: Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    size: 20.sp,
+                    size: 20,
                     color: foregroundColor,
                   ),
                   onPressed: onBackPressed ?? () => Navigator.maybePop(context),
@@ -62,15 +61,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title:
           titleWidget ??
           (title != null
-              ? Text(
-                  title!,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                    color: foregroundColor,
-                  ),
-                )
+              // Style comes from the theme's appBarTheme.titleTextStyle.
+              ? Text(title!)
               : null),
       actions: actions,
       bottom: bottom,

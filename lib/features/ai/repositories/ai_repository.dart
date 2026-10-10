@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/models/api_response.dart';
 import '../../../core/services/base_api_service.dart';
-import '../models/generated_caption.dart';
 import '../models/plan_item.dart';
 
 part 'ai_repository.g.dart';
@@ -15,35 +15,22 @@ AiRepository aiRepository(Ref ref) => AiRepository(ref);
 class AiRepository extends BaseApiService {
   AiRepository(super.ref);
 
-  // Local models can take a while; don't give up at the default timeout.
-  static final _slow = Options(receiveTimeout: const Duration(minutes: 3));
-
-  /// POST /ai/caption
-  Future<ApiResponse<GeneratedCaption>> caption({
-    required String type,
-    required String topic,
-  }) async {
-    try {
-      final response = await post(
-        ApiEndpoints.aiCaption,
-        data: {'type': type, 'topic': topic},
-        options: _slow,
-      );
-      return ApiResponse.success(
-        GeneratedCaption.fromJson(response.data as Map<String, dynamic>),
-      );
-    } on DioException catch (e) {
-      return _failure(e);
-    }
-  }
-
   /// POST /ai/plan: plans 7 days starting at [start] (local date).
+  /// Autopilot only: the AI makes and posts every slot.
   Future<ApiResponse<void>> generatePlan(DateTime start) async {
     try {
       final date = start.toIso8601String().substring(0, 10);
+      // The autopilot schedules each slot in this zone.
+      final timezone = await FlutterTimezone.getLocalTimezone()
+          .then((tz) => tz.identifier)
+          .catchError((Object _) => '');
       await post(
         ApiEndpoints.aiPlan,
-        data: {'startDate': date},
+        data: {
+          'startDate': date,
+          'autopilot': true,
+          if (timezone.isNotEmpty) 'timezone': timezone,
+        },
         // A whole week with captions is the slowest AI call.
         options: Options(receiveTimeout: const Duration(minutes: 5)),
       );
@@ -63,6 +50,24 @@ class AiRepository extends BaseApiService {
             .map((e) => PlanItem.fromJson(e as Map<String, dynamic>))
             .toList(growable: false),
       );
+    } on DioException catch (e) {
+      return _failure(e);
+    }
+  }
+
+  /// PATCH /plan/{id}: new local time (HH:MM), and/or retry a failed
+  /// autopilot slot.
+  Future<ApiResponse<void>> updatePlanItem(
+    String id, {
+    String? time,
+    bool retry = false,
+  }) async {
+    try {
+      await patch(
+        ApiEndpoints.planItem(id),
+        data: {'time': ?time, if (retry) 'retry': true},
+      );
+      return ApiResponse.success(null);
     } on DioException catch (e) {
       return _failure(e);
     }

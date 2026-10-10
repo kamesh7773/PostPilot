@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<title>PostPilot</title>
+<p>Instagram connected. You can close this window.</p>
+<script>
+  // Hands the backend's redirect (status, count, message) back to the app
+  // (flutter_web_auth_2 listens for this message).
+  const message = { 'flutter-web-auth-2': window.location.href };
+  if (window.opener) {
+    window.opener.postMessage(message, window.location.origin);
+    window.close();
+  } else if (window.parent && window.parent !== window) {
+    window.parent.postMessage(message, window.location.origin);
+  } else {
+    localStorage.setItem('flutter-web-auth-2', window.location.href);
+    window.close();
+  }
+</script>

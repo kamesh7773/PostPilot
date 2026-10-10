@@ -27,7 +27,7 @@ class AppColors {
   // Dark mode neutrals. Brand colors above are shared by both modes.
   static const Color darkPrimaryText = Color(0xFFA98BFF);
   static const Color darkPrimarySoft = Color(0xFF2A1F4D);
-  static const Color darkBackground = Color(0xFF0B0B10);
+  static const Color darkBackground = Color(0xFF07070C);
   static const Color darkSurface = Color(0xFF17171F);
   static const Color darkSurfaceMuted = Color(0xFF21212C);
   static const Color darkTextPrimary = Color(0xFFF4F4F8);

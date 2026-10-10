@@ -20,9 +20,11 @@ Dio apiClient(Ref ref) {
       connectTimeout: AppConstants.connectionTimeout,
       receiveTimeout: AppConstants.receiveTimeout,
       sendTimeout: AppConstants.sendTimeout,
-      headers: const {
+      headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        // ngrok's free tunnel serves an HTML warning page to browsers otherwise.
+        if (kIsWeb) 'ngrok-skip-browser-warning': 'true',
       },
     ),
   );

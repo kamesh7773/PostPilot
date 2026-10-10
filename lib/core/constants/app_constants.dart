@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'PostPilot';
+  static const String appName = 'Autocreator';
 
   // Custom URL scheme the backend redirects to at the end of OAuth flows.
   // Must match the backend's APP_OAUTH_RETURN_URL and the Android manifest.

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../features/ai/models/plan_item.dart';
 import '../../features/ai/views/plan_screen.dart';
 import '../../features/auth/views/login_screen.dart';
-import '../../features/compose/views/compose_screen.dart';
 import '../../features/home/views/home_screen.dart';
+import '../../features/notifications/views/notification_permission_screen.dart';
 import '../../features/posts/views/posts_screen.dart';
 import '../../features/profile/views/profile_setup_screen.dart';
 import 'routes.dart';
@@ -25,13 +24,6 @@ class RouteGenerator {
           builder: (_) => const HomeScreen(),
         );
 
-      case Routes.compose:
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (_) =>
-              ComposeScreen(planItem: settings.arguments as PlanItem?),
-        );
-
       case Routes.posts:
         return MaterialPageRoute(
           settings: settings,
@@ -43,6 +35,13 @@ class RouteGenerator {
           settings: settings,
           builder: (_) => const ProfileSetupScreen(),
         );
+      case Routes.notificationPermission:
+        return MaterialPageRoute(
+          settings: settings,
+          fullscreenDialog: true,
+          builder: (_) => const NotificationPermissionScreen(),
+        );
+
       case Routes.plan:
         return MaterialPageRoute(
           settings: settings,

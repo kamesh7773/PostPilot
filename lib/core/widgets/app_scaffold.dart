@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'aurora.dart';
 import 'internet_checker_widget.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -24,13 +25,22 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: appBar,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      floatingActionButton: floatingActionButton,
-      bottomNavigationBar: bottomNavigationBar,
-      body: showOfflineBanner ? InternetCheckerWidget(child: body) : body,
+    // The scaffold is transparent so the aurora shows behind the app bar too.
+    return ColoredBox(
+      color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+      child: Stack(
+        children: [
+          const Positioned.fill(child: AuroraBackground()),
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: appBar,
+            resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+            floatingActionButton: floatingActionButton,
+            bottomNavigationBar: bottomNavigationBar,
+            body: showOfflineBanner ? InternetCheckerWidget(child: body) : body,
+          ),
+        ],
+      ),
     );
   }
 }

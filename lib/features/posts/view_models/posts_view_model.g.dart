@@ -36,7 +36,7 @@ final class PostsViewModelProvider
   PostsViewModel create() => PostsViewModel();
 }
 
-String _$postsViewModelHash() => r'e03d9d5f89e864c1f58a213f0cb1fe0f9d694b26';
+String _$postsViewModelHash() => r'be014f6e94e44e2dea6330eebc6ef5ee206faf1b';
 
 /// The user's posts (newest first) with scheduled/failed actions.
 

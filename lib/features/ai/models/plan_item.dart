@@ -21,6 +21,13 @@ class PlanItem {
   /// Status of the post made from this slot (scheduled, published, ...).
   final String? postStatus;
 
+  /// Autopilot: off (user adds media), pending, generating, ready, failed.
+  final String autoStatus;
+  final String? autoError;
+
+  /// Preview of the generated photo (null for Reels and unfilled slots).
+  final String? mediaUrl;
+
   const PlanItem({
     required this.id,
     required this.format,
@@ -32,6 +39,9 @@ class PlanItem {
     required this.why,
     this.postId,
     this.postStatus,
+    this.autoStatus = 'off',
+    this.autoError,
+    this.mediaUrl,
   });
 
   factory PlanItem.fromJson(Map<String, dynamic> json) => PlanItem(
@@ -45,9 +55,16 @@ class PlanItem {
     why: json['why'] as String? ?? '',
     postId: json['postId'] as String?,
     postStatus: json['postStatus'] as String?,
+    autoStatus: json['autoStatus'] as String? ?? 'off',
+    autoError: json['autoError'] as String?,
+    mediaUrl: json['mediaUrl'] as String?,
   );
 
   bool get isFilled => postId != null;
+
+  /// The AI is still making this slot's photo or video.
+  bool get isGenerating =>
+      autoStatus == 'pending' || autoStatus == 'generating';
 
   /// Local DateTime of the slot.
   DateTime get when => DateTime.parse('${date}T$time:00');

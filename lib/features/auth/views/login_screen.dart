@@ -7,6 +7,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/reveal.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../view_models/auth_view_model.dart';
 
@@ -48,7 +49,7 @@ class LoginScreen extends HookConsumerWidget {
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+                children: Reveal.stagger([
                   Center(
                     child: Container(
                       width: 76,
@@ -56,6 +57,13 @@ class LoginScreen extends HookConsumerWidget {
                       decoration: BoxDecoration(
                         gradient: AppColors.gradient,
                         borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.45),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.rocket_launch_rounded,
@@ -137,7 +145,7 @@ class LoginScreen extends HookConsumerWidget {
                           : "Don't have an account? Sign up",
                     ),
                   ),
-                ],
+                ]),
               ),
             ),
           ),

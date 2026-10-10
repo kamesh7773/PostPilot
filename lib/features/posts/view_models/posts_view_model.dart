@@ -1,15 +1,15 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/dialog_service.dart';
-import '../../compose/models/post.dart';
-import '../../compose/repositories/compose_repository.dart';
+import '../models/post.dart';
+import '../repositories/posts_repository.dart';
 
 part 'posts_view_model.g.dart';
 
 /// The user's posts (newest first) with scheduled/failed actions.
 @riverpod
 class PostsViewModel extends _$PostsViewModel {
-  ComposeRepository get _repo => ref.read(composeRepositoryProvider);
+  PostsRepository get _repo => ref.read(postsRepositoryProvider);
   DialogService get _dialog => ref.read(dialogServiceProvider.notifier);
 
   @override

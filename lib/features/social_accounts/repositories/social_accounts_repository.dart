@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -36,7 +37,11 @@ class SocialAccountsRepository extends BaseApiService {
   /// POST /auth/instagram/start — returns the Facebook Login URL to open.
   Future<ApiResponse<String>> startInstagramConnect() async {
     try {
-      final response = await post(ApiEndpoints.instagramConnectStart);
+      final response = await post(
+        ApiEndpoints.instagramConnectStart,
+        // Web: the backend sends the result to web/auth.html on this origin.
+        data: kIsWeb ? {'returnUrl': '${Uri.base.origin}/auth.html'} : null,
+      );
       return ApiResponse.success(
         (response.data as Map<String, dynamic>)['authUrl'] as String,
       );

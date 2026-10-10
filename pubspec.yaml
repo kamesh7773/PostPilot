@@ -43,10 +43,6 @@ dependencies:
   awesome_notifications: ^0.11.0
   supabase_flutter: ^2.18.0
   flutter_web_auth_2: ^5.1.0
-  image_picker: ^1.2.4
-  flutter_image_compress: ^2.5.1
-  image: ^4.10.1
-  video_compress: ^3.1.4
   flutter_timezone: ^5.1.1
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
@@ -128,7 +124,6 @@ flutter_launcher_icons:
 #   dart run flutter_native_splash:remove
 flutter_native_splash:
   color: "#FFFFFF"
-  image: "assets/icons/app_splash.png"
   android: true
   ios: true
   web: false

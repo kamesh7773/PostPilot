@@ -6,10 +6,6 @@ class AppTheme {
 
   static const String fontFamily = 'PlusJakartaSans';
 
-  static final RoundedRectangleBorder _rounded = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(20),
-  );
-
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);
 
@@ -99,8 +95,16 @@ class AppTheme {
           color: textPrimary,
         ),
       ),
+      // Fade between screens instead of the default slide.
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values)
+            platform: const FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
-        backgroundColor: background,
+        // Transparent: the aurora background shows through (see AppScaffold).
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         foregroundColor: textPrimary,
         elevation: 0,
@@ -199,11 +203,17 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
+      // Glass: slightly see-through with a hairline edge, over the aurora.
       cardTheme: CardThemeData(
-        color: surface,
+        color: surface.withValues(alpha: isDark ? 0.72 : 0.88),
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: _rounded,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white,
+          ),
+        ),
         clipBehavior: Clip.antiAlias,
       ),
       chipTheme: ChipThemeData(

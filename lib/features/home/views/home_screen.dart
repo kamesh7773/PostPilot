@@ -11,11 +11,11 @@ import '../../../core/services/push_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/aurora.dart';
+import '../../../core/widgets/reveal.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../auth/view_models/auth_view_model.dart';
 import '../../profile/view_models/profile_view_model.dart';
-import '../../social_accounts/models/social_account.dart';
-import '../../social_accounts/view_models/social_accounts_view_model.dart';
 import '../../social_accounts/views/widgets/social_accounts_section.dart';
 import '../view_models/home_view_model.dart';
 
@@ -24,19 +24,22 @@ class HomeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Home is only shown when signed in: register this device for alerts.
+    // Home is only shown when signed in: register this device for alerts,
+    // explaining why first if we've never asked.
     useEffect(() {
-      ref.read(pushServiceProvider.notifier).register();
+      ref.read(pushServiceProvider.notifier).registerIfAllowed().then((ask) {
+        if (ask && context.mounted) {
+          ref
+              .read(navigationServiceProvider.notifier)
+              .pushNamed(Routes.notificationPermission);
+        }
+      });
       return null;
     }, const []);
 
     final currentUser = ref.watch(currentUserProvider);
     final profile = ref.watch(profileViewModelProvider);
     final navigation = ref.read(navigationServiceProvider.notifier);
-    final canPost = ref
-        .watch(socialAccountsViewModelProvider)
-        .accounts
-        .any((a) => a.status == SocialAccountStatus.active);
 
     Future<void> confirmSignOut() async {
       final confirmed = await ref
@@ -51,17 +54,6 @@ class HomeScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      floatingActionButton: canPost
-          ? FloatingActionButton.extended(
-              onPressed: () => ref
-                  .read(navigationServiceProvider.notifier)
-                  .pushNamed(Routes.compose),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: const Text('Create post'),
-            )
-          : null,
       appBar: CustomAppBar(
         title: AppConstants.appName,
         showBackButton: false,
@@ -105,7 +97,7 @@ class HomeScreen extends HookConsumerWidget {
         data: (response) => response.isSuccess
             ? ListView(
                 padding: const EdgeInsets.all(24),
-                children: [
+                children: Reveal.stagger([
                   _Welcome(email: response.data!.email),
                   const SizedBox(height: 20),
                   if (profile.hasValue && profile.value == null)
@@ -113,7 +105,7 @@ class HomeScreen extends HookConsumerWidget {
                       icon: Icons.person_outline,
                       title: 'Set up your creator profile',
                       body:
-                          'Answer a few questions so PostPilot can suggest '
+                          'Answer a few questions so Autocreator can suggest '
                           'what to post and when.',
                       action: 'Get started',
                       onTap: () => navigation.pushNamed(Routes.profileSetup),
@@ -131,7 +123,7 @@ class HomeScreen extends HookConsumerWidget {
                     ),
                   const SizedBox(height: 32),
                   const SocialAccountsSection(),
-                ],
+                ]),
               )
             : _BackendError(
                 message: response.error!,
@@ -151,12 +143,7 @@ class _Welcome extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: AppColors.gradient,
-        borderRadius: BorderRadius.circular(24),
-      ),
+    return AuroraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

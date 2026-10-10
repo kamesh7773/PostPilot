@@ -43,7 +43,7 @@ final class PushServiceProvider extends $NotifierProvider<PushService, void> {
   }
 }
 
-String _$pushServiceHash() => r'b4b4903c107cd2f7e795ce34c9ebb43609eaa542';
+String _$pushServiceHash() => r'c6f3ddc3fc9e75a48f4ee5f1966def3600579db2';
 
 /// Registers this device for publish notifications (FCM) with the backend.
 

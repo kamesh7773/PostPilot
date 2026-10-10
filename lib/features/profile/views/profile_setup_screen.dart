@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/services/navigation_service.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/reveal.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../models/creator_profile.dart';
@@ -97,9 +98,9 @@ class ProfileSetupScreen extends HookConsumerWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
-        children: [
+        children: Reveal.stagger([
           Text(
-            'PostPilot uses these answers to suggest what to post, when, and how to write it.',
+            'Autocreator uses these answers to suggest what to post, when, and how to write it.',
             style: TextStyle(color: context.colorScheme.onSurfaceVariant),
           ),
           section('What do you post about?'),
@@ -201,7 +202,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
             isLoading: saving.value,
             onPressed: canSave ? save : null,
           ),
-        ],
+        ]),
       ),
     );
   }

@@ -24,7 +24,7 @@ class SocialAccountsSection extends ConsumerWidget {
           .showConfirmation(
             title: 'Disconnect @${account.username}?',
             message:
-                'PostPilot will stop publishing to this account. '
+                'Autocreator will stop publishing to this account. '
                 'You can reconnect it any time.',
             confirmText: 'Disconnect',
           );

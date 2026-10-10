@@ -6,8 +6,9 @@ import '../../../core/services/dialog_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/reveal.dart';
 import '../../../core/widgets/custom_app_bar.dart';
-import '../../compose/models/post.dart';
+import '../models/post.dart';
 import '../view_models/posts_view_model.dart';
 
 class PostsScreen extends ConsumerWidget {
@@ -79,7 +80,7 @@ class _PostsList extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: [
+      children: Reveal.stagger([
         if (upcoming.isNotEmpty) ...[
           const _Header('Scheduled'),
           for (final day in byDay.entries) ...[
@@ -104,7 +105,7 @@ class _PostsList extends ConsumerWidget {
           const _Header('Published'),
           for (final p in published) _PostTile(post: p),
         ],
-      ],
+      ]),
     );
   }
 }
@@ -161,7 +162,7 @@ class _PostTile extends ConsumerWidget {
             title: scheduled ? 'Cancel this post?' : 'Delete this post?',
             message: scheduled
                 ? "It won't be published."
-                : 'It will be removed from PostPilot.',
+                : 'It will be removed from Autocreator.',
             confirmText: scheduled ? 'Cancel post' : 'Delete',
           );
       if (ok) await vm.delete(post);

@@ -6,14 +6,31 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main_development.dart",
-      "args": ["--flavor", "development"]
+      "args": [
+        "--flavor",
+        "development"
+      ]
+    },
+    {
+      "name": "Development (Web)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_development.dart",
+      "deviceId": "chrome",
+      "args": [
+        "--web-port",
+        "5173"
+      ]
     },
     {
       "name": "Development (Profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_development.dart",
-      "args": ["--flavor", "development"],
+      "args": [
+        "--flavor",
+        "development"
+      ],
       "flutterMode": "profile"
     },
     {
@@ -21,7 +38,10 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main_development.dart",
-      "args": ["--flavor", "development"],
+      "args": [
+        "--flavor",
+        "development"
+      ],
       "flutterMode": "release"
     },
     {
@@ -29,14 +49,20 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main_staging.dart",
-      "args": ["--flavor", "staging"]
+      "args": [
+        "--flavor",
+        "staging"
+      ]
     },
     {
       "name": "Staging (Profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_staging.dart",
-      "args": ["--flavor", "staging"],
+      "args": [
+        "--flavor",
+        "staging"
+      ],
       "flutterMode": "profile"
     },
     {
@@ -44,7 +70,10 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main_staging.dart",
-      "args": ["--flavor", "staging"],
+      "args": [
+        "--flavor",
+        "staging"
+      ],
       "flutterMode": "release"
     },
     {
@@ -52,14 +81,20 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": ["--flavor", "production"]
+      "args": [
+        "--flavor",
+        "production"
+      ]
     },
     {
       "name": "Production (Profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": ["--flavor", "production"],
+      "args": [
+        "--flavor",
+        "production"
+      ],
       "flutterMode": "profile"
     },
     {
@@ -67,7 +102,10 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": ["--flavor", "production"],
+      "args": [
+        "--flavor",
+        "production"
+      ],
       "flutterMode": "release"
     }
   ]

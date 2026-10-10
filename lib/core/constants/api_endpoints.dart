@@ -14,8 +14,6 @@ class ApiEndpoints {
   static const String instagramConnectStart = '/auth/instagram/start';
 
   // Media & posts
-  static const String media = '/media';
-  static const String videoUploadUrl = '/media/video-upload-url';
   static const String posts = '/posts';
   static String post(String id) => '/posts/$id';
   static String publishPost(String id) => '/posts/$id/publish';
@@ -25,7 +23,6 @@ class ApiEndpoints {
 
   // Creator profile & AI
   static const String profile = '/profile';
-  static const String aiCaption = '/ai/caption';
   static const String aiPlan = '/ai/plan';
   static const String plan = '/plan';
   static String planItem(String id) => '/plan/$id';
