@@ -29,4 +29,18 @@ class HomeRepository extends BaseApiService {
       );
     }
   }
+
+  /// POST /me/reset — deletes connected accounts, posts, plan, creator
+  /// profile and media. The login stays.
+  Future<ApiResponse<void>> resetAccount() async {
+    try {
+      await post(ApiEndpoints.resetAccount);
+      return ApiResponse.success(null);
+    } on DioException catch (e) {
+      return ApiResponse.failure(
+        e.message ?? getDioErrorType(e).message,
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
 }

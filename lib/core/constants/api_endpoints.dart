@@ -7,6 +7,7 @@ class ApiEndpoints {
 
   // Current user
   static const String me = '/me';
+  static const String resetAccount = '/me/reset';
 
   // Social accounts
   static const String socialAccounts = '/social-accounts';

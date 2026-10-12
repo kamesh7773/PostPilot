@@ -17,6 +17,9 @@ import '../../../core/widgets/custom_app_bar.dart';
 import '../../auth/view_models/auth_view_model.dart';
 import '../../profile/view_models/profile_view_model.dart';
 import '../../social_accounts/views/widgets/social_accounts_section.dart';
+import '../../posts/view_models/posts_view_model.dart';
+import '../../social_accounts/view_models/social_accounts_view_model.dart';
+import '../repositories/home_repository.dart';
 import '../view_models/home_view_model.dart';
 
 class HomeScreen extends HookConsumerWidget {
@@ -53,6 +56,35 @@ class HomeScreen extends HookConsumerWidget {
       await ref.read(authViewModelProvider.notifier).signOut();
     }
 
+    Future<void> confirmReset() async {
+      final dialog = ref.read(dialogServiceProvider.notifier);
+      final confirmed = await dialog.showConfirmation(
+        title: 'Reset account?',
+        message:
+            'This permanently deletes your connected Instagram accounts, '
+            'scheduled posts, AI plan, creator profile and uploaded media. '
+            'Posts already on Instagram stay there. You stay signed in.',
+        confirmText: 'Reset',
+      );
+      if (!confirmed) return;
+      dialog.showLoading();
+      final response = await ref.read(homeRepositoryProvider).resetAccount();
+      dialog.hideLoading();
+      if (!response.isSuccess) {
+        dialog.showError(response.error!, title: 'Reset failed');
+        return;
+      }
+      ref
+        ..invalidate(socialAccountsViewModelProvider)
+        ..invalidate(profileViewModelProvider)
+        ..invalidate(postsViewModelProvider)
+        ..invalidate(currentUserProvider);
+      dialog.showSuccess(
+        'Your account is fresh again.',
+        title: 'Account reset',
+      );
+    }
+
     return AppScaffold(
       appBar: CustomAppBar(
         title: AppConstants.appName,
@@ -81,10 +113,31 @@ class HomeScreen extends HookConsumerWidget {
               PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: confirmSignOut,
+          PopupMenuButton<VoidCallback>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'Account',
+            onSelected: (action) => action(),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: confirmReset,
+                child: const ListTile(
+                  leading: Icon(Icons.restart_alt, color: AppColors.error),
+                  title: Text(
+                    'Reset account',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: confirmSignOut,
+                child: const ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Sign out'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
