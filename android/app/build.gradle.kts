@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.postpilot.app"
+        applicationId = "com.maxaix.autocreator"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

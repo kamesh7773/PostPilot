@@ -47,7 +47,10 @@ class AuthViewModel extends _$AuthViewModel {
   }
 
   Future<void> signOut() async {
+    // Read before awaiting: nothing watches this provider on Home, so it can
+    // be disposed while unregister() is in flight.
+    final repo = _repo;
     await ref.read(pushServiceProvider.notifier).unregister();
-    await _repo.signOut();
+    await repo.signOut();
   }
 }

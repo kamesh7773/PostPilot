@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:toastification/toastification.dart';
 
 import '../theme/app_colors.dart';
+import '../widgets/app_toast.dart';
 import 'navigation_service.dart';
 
 part 'dialog_service.g.dart';
@@ -35,7 +36,7 @@ class DialogService extends _$DialogService {
   }) => _showToast(
     title: title,
     message: message,
-    type: ToastificationType.error,
+    icon: Icons.error_rounded,
     primaryColor: AppColors.error,
     duration: duration,
   );
@@ -47,7 +48,7 @@ class DialogService extends _$DialogService {
   }) => _showToast(
     title: title,
     message: message,
-    type: ToastificationType.success,
+    icon: Icons.check_circle_rounded,
     primaryColor: AppColors.success,
     duration: duration,
   );
@@ -59,7 +60,7 @@ class DialogService extends _$DialogService {
   }) => _showToast(
     title: title,
     message: message,
-    type: ToastificationType.warning,
+    icon: Icons.warning_rounded,
     primaryColor: AppColors.warning,
     duration: duration,
   );
@@ -71,7 +72,7 @@ class DialogService extends _$DialogService {
   }) => _showToast(
     title: title,
     message: message,
-    type: ToastificationType.info,
+    icon: Icons.info_rounded,
     primaryColor: AppColors.info,
     duration: duration,
   );
@@ -79,24 +80,20 @@ class DialogService extends _$DialogService {
   void _showToast({
     required String title,
     required String message,
-    required ToastificationType type,
+    required IconData icon,
     required Color primaryColor,
     required Duration duration,
   }) {
-    toastification.show(
-      type: type,
-      style: ToastificationStyle.flatColored,
+    toastification.showCustom(
       alignment: Alignment.topCenter,
       autoCloseDuration: duration,
-      showProgressBar: true,
-      title: Text(title),
-      description: Text(message),
-      primaryColor: primaryColor,
-      borderRadius: BorderRadius.circular(16),
-      dragToClose: true,
-      pauseOnHover: true,
-      closeOnClick: true,
-      applyBlurEffect: false,
+      builder: (_, item) => AppToast(
+        item: item,
+        title: title,
+        message: message,
+        icon: icon,
+        color: primaryColor,
+      ),
     );
   }
 

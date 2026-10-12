@@ -66,7 +66,7 @@ class NotificationPermissionScreen extends HookConsumerWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'PostPilot publishes your scheduled posts even when your '
+                'Autocreator publishes your scheduled posts even when your '
                 'phone is off. Notifications tell you how it went.',
                 style: textTheme.bodyMedium?.copyWith(
                   color: context.colorScheme.onSurfaceVariant,

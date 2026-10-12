@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/assets.gen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -52,11 +53,10 @@ class LoginScreen extends HookConsumerWidget {
                 children: Reveal.stagger([
                   Center(
                     child: Container(
-                      width: 76,
-                      height: 76,
+                      width: 104,
+                      height: 104,
                       decoration: BoxDecoration(
-                        gradient: AppColors.gradient,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.45),
@@ -65,10 +65,14 @@ class LoginScreen extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.rocket_launch_rounded,
-                        size: 38,
-                        color: Colors.white,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        // The source is 1254px; decode small to save memory.
+                        child: Image.asset(
+                          AppAssets.icons.appLogo.path,
+                          cacheWidth: 312,
+                          semanticLabel: 'Autocreator logo',
+                        ),
                       ),
                     ),
                   ),

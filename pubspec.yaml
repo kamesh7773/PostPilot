@@ -113,9 +113,8 @@ flutter_launcher_icons:
   min_sdk_android: 21
   remove_alpha_ios: true
   # Adaptive icon settings (Android 8+)
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#070317"
   adaptive_icon_foreground: "assets/icons/app_logo.png"
-  adaptive_icon_monochrome: "assets/icons/app_logo.png"
 
 # Native splash screen (Android + iOS)
 # Drop a square PNG at assets/icons/app_splash.png, then run:
@@ -123,7 +122,9 @@ flutter_launcher_icons:
 # To remove the splash later:
 #   dart run flutter_native_splash:remove
 flutter_native_splash:
-  color: "#FFFFFF"
+  color: "#070317"
+  # iOS and Android 11 and older. Without it they show only the colour.
+  image: "assets/icons/app_splash.png"
   android: true
   ios: true
   web: false
@@ -133,5 +134,6 @@ flutter_native_splash:
   # Android 12+ uses a different splash mechanism — a foreground icon on a
   # background color. Keep the same logo for consistency.
   android_12:
-    image: "assets/icons/app_splash.png"
-    icon_background_color: "#FFFFFF"
+    # Padded: Android 12+ crops the splash icon to a circle.
+    image: "assets/icons/app_logo_padded.png"
+    icon_background_color: "#070317"

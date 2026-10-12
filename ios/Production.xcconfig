@@ -2,7 +2,7 @@
 
 FLUTTER_TARGET=lib/main.dart
 ASSET_PREFIX=production
-PRODUCT_BUNDLE_IDENTIFIER=com.postpilot.app
-DISPLAY_NAME=PostPilot
+PRODUCT_BUNDLE_IDENTIFIER=com.maxaix.autocreator
+DISPLAY_NAME=Autocreator
 
 CODE_SIGN_ENTITLEMENTS=Runner/Runner.entitlements
