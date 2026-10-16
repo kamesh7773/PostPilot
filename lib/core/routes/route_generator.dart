@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../features/ai/models/plan_item.dart';
 import '../../features/ai/views/plan_screen.dart';
+import '../../features/ai/views/post_preview_screen.dart';
 import '../../features/auth/views/login_screen.dart';
 import '../../features/home/views/home_screen.dart';
 import '../../features/notifications/views/notification_permission_screen.dart';
@@ -46,6 +48,12 @@ class RouteGenerator {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => const PlanScreen(),
+        );
+      case Routes.planPreview:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) =>
+              PostPreviewScreen(item: settings.arguments as PlanItem),
         );
 
       default:

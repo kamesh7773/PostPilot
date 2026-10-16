@@ -28,6 +28,9 @@ class PlanItem {
   /// Preview of the generated photo (null for Reels and unfilled slots).
   final String? mediaUrl;
 
+  /// All generated media: carousel slides, or the Reel's video.
+  final List<String> mediaUrls;
+
   const PlanItem({
     required this.id,
     required this.format,
@@ -42,6 +45,7 @@ class PlanItem {
     this.autoStatus = 'off',
     this.autoError,
     this.mediaUrl,
+    this.mediaUrls = const [],
   });
 
   factory PlanItem.fromJson(Map<String, dynamic> json) => PlanItem(
@@ -58,9 +62,28 @@ class PlanItem {
     autoStatus: json['autoStatus'] as String? ?? 'off',
     autoError: json['autoError'] as String?,
     mediaUrl: json['mediaUrl'] as String?,
+    mediaUrls: (json['mediaUrls'] as List? ?? const []).cast<String>(),
   );
 
   bool get isFilled => postId != null;
+
+  // Backend reasons that are already written for users; anything else is a
+  // raw provider error (quota, model, network) and is kept out of the UI.
+  static const _userMessages = {
+    'This time has passed. Pick a later time to try again.',
+    'Connect Instagram, then try again.',
+    'Weekly autopilot limit reached. Try again later this week.',
+  };
+
+  /// What to show for a failed slot (null when there is no error).
+  String? get friendlyError => autoError == null
+      ? null
+      : _userMessages.contains(autoError)
+      ? autoError
+      : "We couldn't create this one. Please try again in a few minutes.";
+
+  /// Time and caption can change until the post starts publishing.
+  bool get isEditable => postStatus == null || postStatus == 'scheduled';
 
   /// The AI is still making this slot's photo or video.
   bool get isGenerating =>

@@ -55,17 +55,18 @@ class AiRepository extends BaseApiService {
     }
   }
 
-  /// PATCH /plan/{id}: new local time (HH:MM), and/or retry a failed
-  /// autopilot slot.
+  /// PATCH /plan/{id}: new local time (HH:MM) and/or caption, or retry a
+  /// failed autopilot slot.
   Future<ApiResponse<void>> updatePlanItem(
     String id, {
     String? time,
+    String? caption,
     bool retry = false,
   }) async {
     try {
       await patch(
         ApiEndpoints.planItem(id),
-        data: {'time': ?time, if (retry) 'retry': true},
+        data: {'time': ?time, 'caption': ?caption, if (retry) 'retry': true},
       );
       return ApiResponse.success(null);
     } on DioException catch (e) {

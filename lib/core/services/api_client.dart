@@ -84,6 +84,10 @@ Interceptor _interceptor(Ref ref) {
           error.type == DioExceptionType.sendTimeout ||
           error.type == DioExceptionType.connectionError) {
         message = 'No internet connection, please check your connection';
+      } else if ((error.response?.statusCode ?? 0) >= 500) {
+        // Server-side failures carry raw causes (AI quota, provider errors).
+        message =
+            'Something went wrong on our side. Please try again in a few minutes.';
       } else if (error.response?.data is Map<String, dynamic>) {
         final data = error.response!.data as Map<String, dynamic>;
         if (data['message'] != null) {

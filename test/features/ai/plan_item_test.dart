@@ -19,4 +19,29 @@ void main() {
     expect(item.when.isUtc, isFalse);
     expect(item.isFilled, isFalse);
   });
+
+  test('failed slots show a friendly error, never the raw provider one', () {
+    PlanItem failed(String? error) => PlanItem.fromJson({
+      'id': 'a',
+      'format': 'image',
+      'date': '2026-10-12',
+      'time': '19:30',
+      'title': 'T',
+      'hook': '',
+      'caption': '',
+      'why': '',
+      'autoError': error,
+    });
+    expect(failed(null).friendlyError, isNull);
+    expect(
+      failed('Connect Instagram, then try again.').friendlyError,
+      'Connect Instagram, then try again.',
+    );
+    expect(
+      failed(
+        'You exceeded your current quota, please check your plan.',
+      ).friendlyError,
+      "We couldn't create this one. Please try again in a few minutes.",
+    );
+  });
 }

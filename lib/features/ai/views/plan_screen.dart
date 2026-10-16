@@ -5,7 +5,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/extensions/context_extensions.dart';
+import '../../../core/routes/routes.dart';
 import '../../../core/services/dialog_service.dart';
+import '../../../core/services/navigation_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -17,7 +19,8 @@ import '../models/plan_item.dart';
 import '../repositories/ai_repository.dart';
 
 /// AI weekly timeline on autopilot: AI makes and posts every slot. The user
-/// can only change times, retry a failed slot, or remove one.
+/// can preview a slot, change its time or caption, retry a failed slot, or
+/// remove one.
 class PlanScreen extends HookConsumerWidget {
   const PlanScreen({super.key});
 
@@ -27,6 +30,7 @@ class PlanScreen extends HookConsumerWidget {
     final planning = useState(false);
     final repo = ref.read(aiRepositoryProvider);
     final dialog = ref.read(dialogServiceProvider.notifier);
+    final navigation = ref.read(navigationServiceProvider.notifier);
 
     Future<void> load() async {
       final response = await repo.fetchPlan();
@@ -97,6 +101,12 @@ class PlanScreen extends HookConsumerWidget {
       await load();
     }
 
+    // Reload afterwards: the caption may have been edited.
+    Future<void> preview(PlanItem item) async {
+      await navigation.pushNamed(Routes.planPreview, arguments: item);
+      if (context.mounted) await load();
+    }
+
     Future<void> remove(PlanItem item) async {
       items.value = [...?items.value]..remove(item);
       final response = await repo.deletePlanItem(item.id);
@@ -139,6 +149,7 @@ class PlanScreen extends HookConsumerWidget {
                           onRemove: () => remove(item),
                           onEditTime: () => editTime(item),
                           onRetry: () => retry(item),
+                          onOpen: () => preview(item),
                         ),
                       ),
                   ],
@@ -205,12 +216,14 @@ class _SlotCard extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onEditTime;
   final VoidCallback onRetry;
+  final VoidCallback onOpen;
 
   const _SlotCard({
     required this.item,
     required this.onRemove,
     required this.onEditTime,
     required this.onRetry,
+    required this.onOpen,
   });
 
   static const _formats = {
@@ -225,172 +238,202 @@ class _SlotCard extends StatelessWidget {
     final colors = context.colorScheme;
     final textTheme = context.textTheme;
     final (label, icon) = _formats[item.format] ?? _formats['image']!;
-    final timeEditable =
-        item.postStatus == null || item.postStatus == 'scheduled';
+    final timeEditable = item.isEditable;
 
     return PulseGlow(
       active: item.isGenerating,
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 8, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // Time is editable until the post starts publishing.
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: timeEditable ? onEditTime : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            formatPostTimeOfDay(context, item.when),
-                            style: textTheme.titleMedium,
-                          ),
-                          if (timeEditable) ...[
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 16,
-                              color: colors.onSurfaceVariant,
-                              semanticLabel: 'Change time',
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Time is editable until the post starts publishing.
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: timeEditable ? onEditTime : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              formatPostTimeOfDay(context, item.when),
+                              style: textTheme.titleMedium,
                             ),
+                            if (timeEditable) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.edit_outlined,
+                                size: 16,
+                                color: colors.onSurfaceVariant,
+                                semanticLabel: 'Change time',
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  _Pill(
-                    icon: icon,
-                    text: label,
-                    color: colors.primary,
-                    background: colors.primaryContainer,
-                  ),
-                  const Spacer(),
-                  if (item.isGenerating)
+                    const SizedBox(width: 10),
                     _Pill(
-                      icon: Icons.auto_awesome,
-                      text: 'AI creating',
+                      icon: icon,
+                      text: label,
                       color: colors.primary,
                       background: colors.primaryContainer,
-                    )
-                  else if (item.isFilled)
-                    _Pill(
-                      icon: Icons.check_circle,
-                      text: switch (item.postStatus) {
-                        'published' => 'Posted',
-                        'failed' => 'Failed',
-                        _ => 'Scheduled',
-                      },
-                      color: item.postStatus == 'failed'
-                          ? AppColors.error
-                          : AppColors.success,
-                      background:
-                          (item.postStatus == 'failed'
-                                  ? AppColors.error
-                                  : AppColors.success)
-                              .withValues(alpha: 0.12),
-                    )
-                  else
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 20),
-                      tooltip: 'Remove slot',
-                      visualDensity: VisualDensity.compact,
-                      onPressed: onRemove,
                     ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item.title, style: textTheme.titleMedium),
-                    if (item.hook.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '“${item.hook}”',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
+                    const Spacer(),
+                    if (item.isGenerating)
+                      _Pill(
+                        icon: Icons.auto_awesome,
+                        text: 'AI creating',
+                        color: colors.primary,
+                        background: colors.primaryContainer,
+                      )
+                    else if (item.isFilled)
+                      _Pill(
+                        icon: Icons.check_circle,
+                        text: switch (item.postStatus) {
+                          'published' => 'Posted',
+                          'failed' => 'Failed',
+                          _ => 'Scheduled',
+                        },
+                        color: item.postStatus == 'failed'
+                            ? AppColors.error
+                            : AppColors.success,
+                        background:
+                            (item.postStatus == 'failed'
+                                    ? AppColors.error
+                                    : AppColors.success)
+                                .withValues(alpha: 0.12),
+                      )
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        tooltip: 'Remove slot',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onRemove,
                       ),
-                    ],
-                    if (item.why.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        item.why,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    if (item.mediaUrl != null) ...[
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          item.mediaUrl!,
-                          height: 220,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                        ),
-                      ),
-                    ],
-                    if (item.isGenerating) ...[
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              item.format == 'reel'
-                                  ? 'Creating your Reel. Videos take a few minutes.'
-                                  : 'Creating your $label.',
-                              style: textTheme.bodySmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (item.autoStatus == 'failed' &&
-                        item.autoError != null &&
-                        !item.isFilled) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        item.autoError!,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.error,
-                        ),
-                      ),
-                    ],
-                    // Autopilot slots never take media from the user; a failed
-                    // one can only be retried (or moved to a later time).
-                    // A failed slot can only be retried (or moved to a later time).
-                    if (item.autoStatus == 'failed' && !item.isFilled) ...[
-                      const SizedBox(height: 14),
-                      CustomButton(
-                        text: 'Try again',
-                        icon: Icons.refresh_rounded,
-                        height: 44,
-                        onPressed: onRetry,
-                      ),
-                    ],
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.title, style: textTheme.titleMedium),
+                      if (item.hook.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '“${item.hook}”',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      if (item.why.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          item.why,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      if (item.mediaUrl != null) ...[
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            item.mediaUrl!,
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          ),
+                        ),
+                      ],
+                      if (item.format == 'reel' &&
+                          item.mediaUrls.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          height: 120,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.play_circle_outline,
+                                size: 40,
+                                color: colors.primary,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Tap to watch your Reel',
+                                style: textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (item.isGenerating) ...[
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                item.format == 'reel'
+                                    ? 'Creating your Reel. Videos take a few minutes.'
+                                    : 'Creating your $label.',
+                                style: textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (item.autoStatus == 'failed' &&
+                          item.friendlyError != null &&
+                          !item.isFilled) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          item.friendlyError!,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                      // Autopilot slots never take media from the user; a failed
+                      // one can only be retried (or moved to a later time).
+                      // A failed slot can only be retried (or moved to a later time).
+                      if (item.autoStatus == 'failed' && !item.isFilled) ...[
+                        const SizedBox(height: 14),
+                        CustomButton(
+                          text: 'Try again',
+                          icon: Icons.refresh_rounded,
+                          height: 44,
+                          onPressed: onRetry,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
