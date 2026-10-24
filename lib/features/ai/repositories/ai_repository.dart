@@ -59,6 +59,7 @@ class AiRepository extends BaseApiService {
   /// failed autopilot slot.
   Future<ApiResponse<void>> updatePlanItem(
     String id, {
+    String? date,
     String? time,
     String? caption,
     bool retry = false,
@@ -66,7 +67,7 @@ class AiRepository extends BaseApiService {
     try {
       await patch(
         ApiEndpoints.planItem(id),
-        data: {'time': ?time, 'caption': ?caption, if (retry) 'retry': true},
+        data: {'date': ?date, 'time': ?time, 'caption': ?caption, if (retry) 'retry': true},
       );
       return ApiResponse.success(null);
     } on DioException catch (e) {

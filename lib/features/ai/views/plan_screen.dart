@@ -79,6 +79,15 @@ class PlanScreen extends HookConsumerWidget {
     }
 
     Future<void> editTime(PlanItem item) async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final day = await showDatePicker(
+        context: context,
+        initialDate: item.when.isBefore(today) ? today : item.when,
+        firstDate: today,
+        lastDate: today.add(const Duration(days: 365)),
+      );
+      if (day == null || !context.mounted) return;
       final picked = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(item.when),
@@ -87,6 +96,7 @@ class PlanScreen extends HookConsumerWidget {
       String two(int n) => n.toString().padLeft(2, '0');
       final response = await repo.updatePlanItem(
         item.id,
+        date: '${day.year}-${two(day.month)}-${two(day.day)}',
         time: '${two(picked.hour)}:${two(picked.minute)}',
       );
       if (!context.mounted) return;
@@ -272,7 +282,7 @@ class _SlotCard extends StatelessWidget {
                                 Icons.edit_outlined,
                                 size: 16,
                                 color: colors.onSurfaceVariant,
-                                semanticLabel: 'Change time',
+                                semanticLabel: 'Change date and time',
                               ),
                             ],
                           ],
