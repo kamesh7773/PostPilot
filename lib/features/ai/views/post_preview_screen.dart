@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/services/dialog_service.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../../core/widgets/media_preview.dart';
 import '../models/plan_item.dart';
 import '../repositories/ai_repository.dart';
 
@@ -62,7 +62,13 @@ class PostPreviewScreen extends HookConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          _Media(item: item),
+          MediaPreview(
+            format: item.format,
+            urls: item.mediaUrls,
+            emptyText: item.isGenerating
+                ? 'AI is still creating this. Check back in a few minutes.'
+                : "The media isn't ready yet.",
+          ),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -129,162 +135,6 @@ class PostPreviewScreen extends HookConsumerWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-/// The slot's media at Instagram's shape: one photo, swipeable carousel
-/// slides, a Story card, or the Reel playing.
-class _Media extends HookWidget {
-  final PlanItem item;
-
-  const _Media({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final page = useState(0);
-    final colors = context.colorScheme;
-    final urls = item.mediaUrls;
-    final vertical = item.format == 'reel' || item.format == 'story';
-
-    final Widget content;
-    if (urls.isEmpty) {
-      content = ColoredBox(
-        color: colors.surfaceContainerHighest,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              item.isGenerating
-                  ? 'AI is still creating this. Check back in a few minutes.'
-                  : "The media isn't ready yet.",
-              textAlign: TextAlign.center,
-              style: context.textTheme.bodyMedium,
-            ),
-          ),
-        ),
-      );
-    } else if (item.format == 'reel') {
-      content = _ReelPlayer(url: urls.first);
-    } else {
-      content = Stack(
-        children: [
-          PageView(
-            onPageChanged: (i) => page.value = i,
-            children: [
-              for (final url in urls)
-                Image.network(
-                  url,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (_, child, progress) => progress == null
-                      ? child
-                      : const Center(child: CircularProgressIndicator()),
-                  errorBuilder: (_, _, _) =>
-                      const Center(child: Icon(Icons.broken_image_outlined)),
-                ),
-            ],
-          ),
-          if (urls.length > 1)
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  '${page.value + 1}/${urls.length}',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ),
-        ],
-      );
-    }
-
-    // Keep tall Stories and Reels on screen with room for the caption.
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * (vertical ? 0.65 : 0.55),
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: vertical ? 9 / 16 : 4 / 5,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: content,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReelPlayer extends HookWidget {
-  final String url;
-
-  const _ReelPlayer({required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useMemoized(
-      () => VideoPlayerController.networkUrl(Uri.parse(url)),
-      [url],
-    );
-    useEffect(() => controller.dispose, [controller]);
-    final init = useMemoized(
-      () => controller.initialize().then((_) {
-        if (!context.mounted) return;
-        controller
-          ..setLooping(true)
-          ..play();
-      }),
-      [controller],
-    );
-    final loaded = useFuture(init);
-    final value = useValueListenable(controller);
-
-    if (loaded.hasError) {
-      return const ColoredBox(
-        color: Colors.black,
-        child: Center(
-          child: Text(
-            "Couldn't load the video.",
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
-    }
-    if (!value.isInitialized) {
-      return const ColoredBox(
-        color: Colors.black,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    return GestureDetector(
-      onTap: () => value.isPlaying ? controller.pause() : controller.play(),
-      child: ColoredBox(
-        color: Colors.black,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AspectRatio(
-              aspectRatio: value.aspectRatio,
-              child: VideoPlayer(controller),
-            ),
-            if (!value.isPlaying)
-              const Icon(
-                Icons.play_circle_fill,
-                size: 64,
-                color: Colors.white,
-                semanticLabel: 'Play',
-              ),
-          ],
-        ),
       ),
     );
   }

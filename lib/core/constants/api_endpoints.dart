@@ -28,6 +28,15 @@ class ApiEndpoints {
   static const String plan = '/plan';
   static String planItem(String id) => '/plan/$id';
 
+  // Live QR posts (dev only)
+  static const String brands = '/brands';
+  static String brand(String id) => '/brands/$id';
+  static String brandPosts(String brandId) => '/brands/$brandId/posts';
+  static String brandOwnPosts(String brandId) => '/brands/$brandId/own-posts';
+  static String brandPost(String id) => '/brand-posts/$id';
+  static String brandPostChanges(String id) => '/brand-posts/$id/changes';
+  static String brandPostApprove(String id) => '/brand-posts/$id/approve';
+
   // Exemple of api endpoints
   // static const String products = '/products';
   // static String productById(int id) => '/products/$id';

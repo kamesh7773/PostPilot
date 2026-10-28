@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   awesome_notifications
   connectivity_plus
+  desktop_drop
   desktop_webview_window
   firebase_core
   flutter_secure_storage_windows

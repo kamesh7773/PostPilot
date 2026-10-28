@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links_linux
   awesome_notifications
+  desktop_drop
   desktop_webview_window
   flutter_secure_storage_linux
   flutter_timezone

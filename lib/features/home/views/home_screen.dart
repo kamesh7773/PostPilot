@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/config/env.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/routes/routes.dart';
@@ -174,6 +175,19 @@ class HomeScreen extends HookConsumerWidget {
                       action: 'Open',
                       onTap: () => navigation.pushNamed(Routes.plan),
                     ),
+                  // Dev flavor only: posting for Live QR.
+                  if (Env.isDevelopment) ...[
+                    const SizedBox(height: 12),
+                    _SetupCard(
+                      icon: Icons.qr_code_2,
+                      title: 'Live QR posts',
+                      body:
+                          'AI makes Live QR posts for Instagram and Facebook. '
+                          'Nothing posts until you approve it.',
+                      action: 'Open',
+                      onTap: () => navigation.pushNamed(Routes.brands),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   const SocialAccountsSection(),
                 ]),

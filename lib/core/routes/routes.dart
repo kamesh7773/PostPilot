@@ -8,4 +8,8 @@ class Routes {
   static const String plan = '/plan';
   static const String planPreview = '/plan/preview';
   static const String notificationPermission = '/notifications/permission';
+
+  // Live QR posts: dev flavor only (see RouteGenerator).
+  static const String brands = '/brands';
+  static const String brandPost = '/brands/post';
 }
